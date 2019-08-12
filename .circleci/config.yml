@@ -4,7 +4,7 @@ jobs:
     docker:
       - image: circleci/golang:1.12.7
 
-    working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
+    working_directory: /go/src/github.com/minami14/go-bitarray
     steps:
       - checkout
 
