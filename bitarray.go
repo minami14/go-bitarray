@@ -4,12 +4,12 @@ import "errors"
 
 // BitArray is bool array with low memory usage.
 type BitArray struct {
-	blocks []uint64
+	blocks []byte
 	length int
 }
 
 // bit per block
-const bits = 64
+const bits = 8
 
 // NewBitArray is BitArray constructed.
 func NewBitArray(size int) (*BitArray, error) {
@@ -18,7 +18,7 @@ func NewBitArray(size int) (*BitArray, error) {
 	}
 
 	return &BitArray{
-		blocks: make([]uint64, size/bits+1),
+		blocks: make([]byte, size/bits+1),
 		length: size,
 	}, nil
 }
@@ -31,8 +31,8 @@ func (b *BitArray) Set(index int) error {
 
 	i := index / bits
 	u := b.blocks[i]
-	shift := uint64(index % bits)
-	mask := uint64(1 << shift)
+	shift := byte(index % bits)
+	mask := byte(1 << shift)
 	flag := u | mask
 	b.blocks[i] = flag
 	return nil
@@ -46,8 +46,8 @@ func (b *BitArray) Get(index int) (bool, error) {
 
 	i := index / bits
 	u := b.blocks[i]
-	shift := uint64(index % bits)
-	mask := uint64(1 << shift)
+	shift := byte(index % bits)
+	mask := byte(1 << shift)
 	flag := u & mask
 	return flag != 0, nil
 }
@@ -60,8 +60,8 @@ func (b *BitArray) Clear(index int) error {
 
 	i := index / bits
 	u := b.blocks[i]
-	shift := uint64(index % bits)
-	mask := uint64(1 << shift)
+	shift := byte(index % bits)
+	mask := byte(1 << shift)
 	flag := u & ^mask
 	b.blocks[i] = flag
 	return nil
@@ -69,7 +69,7 @@ func (b *BitArray) Clear(index int) error {
 
 // Reset set all bits to false.
 func (b *BitArray) Reset() {
-	b.blocks = make([]uint64, b.length/bits+1)
+	b.blocks = make([]byte, b.length/bits+1)
 }
 
 // Length returns number of bits in the BitArray.
