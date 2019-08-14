@@ -99,6 +99,28 @@ func BenchmarkBitArray_Set(b *testing.B) {
 	}
 }
 
+func BenchmarkBoolSlice_Get(b *testing.B) {
+	b.ReportAllocs()
+	b.ResetTimer()
+
+	boolSlice := make([]bool, b.N)
+
+	for i := 0; i < b.N; i++ {
+		_ = boolSlice[i]
+	}
+}
+
+func BenchmarkBoolSlice_Set(b *testing.B) {
+	b.ReportAllocs()
+	b.ResetTimer()
+
+	boolSlice := make([]bool, b.N)
+
+	for i := 0; i < b.N; i++ {
+		boolSlice[i] = true
+	}
+}
+
 func BenchmarkBitArray8_Get(b *testing.B) {
 	b.ReportAllocs()
 	b.ResetTimer()
