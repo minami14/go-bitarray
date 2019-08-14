@@ -65,3 +65,35 @@ func TestBitArray(t *testing.T) {
 		}
 	}
 }
+
+func BenchmarkBitArray_Get(b *testing.B) {
+	b.ReportAllocs()
+	b.ResetTimer()
+
+	bitArray, err := NewBitArray(b.N)
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	for i := 0; i < b.N; i++ {
+		if _, err = bitArray.Get(i); err != nil {
+			b.Log(err)
+		}
+	}
+}
+
+func BenchmarkBitArray_Set(b *testing.B) {
+	b.ReportAllocs()
+	b.ResetTimer()
+
+	bitArray, err := NewBitArray(b.N)
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	for i := 0; i < b.N; i++ {
+		if err := bitArray.Set(i); err != nil {
+			b.Log(err)
+		}
+	}
+}
