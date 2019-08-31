@@ -12,14 +12,19 @@ type BitArray struct {
 const bits = 8
 
 // NewBitArray is BitArray constructed.
-func NewBitArray(size int) (*BitArray, error) {
-	if size <= 0 {
-		return nil, errors.New("size is 0 or less")
+func NewBitArray(length int) (*BitArray, error) {
+	if length < 0 {
+		return nil, errors.New("negative length argument")
+	}
+
+	blockSize := length / bits
+	if length%bits != 0 {
+		blockSize++
 	}
 
 	return &BitArray{
-		blocks: make([]byte, size/bits+1),
-		length: size,
+		blocks: make([]byte, blockSize),
+		length: length,
 	}, nil
 }
 
@@ -75,4 +80,47 @@ func (b *BitArray) Reset() {
 // Length returns number of bits in the BitArray.
 func (b *BitArray) Length() int {
 	return b.length
+}
+
+// Slice the BitArray
+func (b *BitArray) Slice(start, end int) (*BitArray, error) {
+	size := end - start
+	bitArray, err := NewBitArray(size)
+	if err != nil {
+		return nil, err
+	}
+
+	copySize := size
+	if size > b.length-start {
+		copySize = b.length - start
+	}
+
+	for i := 0; i < copySize; i++ {
+		isSet, err := b.Get(i + start)
+		if err != nil {
+			return nil, err
+		}
+
+		if isSet {
+			if err := bitArray.Set(i); err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	return bitArray, nil
+}
+
+// Clone the BitArray
+func (b *BitArray) Clone() (*BitArray, error) {
+	clone, err := NewBitArray(b.length)
+	if err != nil {
+		return nil, err
+	}
+
+	for i := 0; i < len(clone.blocks); i++ {
+		clone.blocks[i] = b.blocks[i]
+	}
+
+	return clone, nil
 }
