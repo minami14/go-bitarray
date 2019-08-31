@@ -86,8 +86,8 @@ func TestBitArray_Slice(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	for i := 0; i < end - start; i++ {
-		isSetArray, err := bitArray.Get(i+start)
+	for i := 0; i < end-start; i++ {
+		isSetArray, err := bitArray.Get(i + start)
 		if err != nil {
 			t.Error(err)
 		}
