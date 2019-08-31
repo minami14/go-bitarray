@@ -86,6 +86,11 @@ func TestBitArray_Slice(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	max := end - start
+	if max > bitArray.length-start {
+		max = bitArray.length - start
+	}
+
 	for i := 0; i < end-start; i++ {
 		isSetArray, err := bitArray.Get(i + start)
 		if err != nil {
@@ -93,6 +98,40 @@ func TestBitArray_Slice(t *testing.T) {
 		}
 
 		isSetSlice, err := bitSlice.Get(i)
+		if err != nil {
+			t.Error(err)
+		}
+
+		if isSetArray != isSetSlice {
+			t.Error("value does not match")
+		}
+	}
+}
+
+func TestBitArray_Clone(t *testing.T) {
+	bitArray, err := NewBitArray(1000)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for i := 0; i < bitArray.length; i += 7 {
+		if err := bitArray.Set(i); err != nil {
+			t.Error(err)
+		}
+	}
+
+	clone, err := bitArray.Clone()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for i := 0; i < bitArray.length; i++ {
+		isSetArray, err := bitArray.Get(i)
+		if err != nil {
+			t.Error(err)
+		}
+
+		isSetSlice, err := clone.Get(i)
 		if err != nil {
 			t.Error(err)
 		}

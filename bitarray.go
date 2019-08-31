@@ -110,3 +110,17 @@ func (b *BitArray) Slice(start, end int) (*BitArray, error) {
 
 	return bitArray, nil
 }
+
+// Clone the BitArray
+func (b *BitArray) Clone() (*BitArray, error) {
+	clone, err := NewBitArray(b.length)
+	if err != nil {
+		return nil, err
+	}
+
+	for i := 0; i < len(clone.blocks); i++ {
+		clone.blocks[i] = b.blocks[i]
+	}
+
+	return clone, nil
+}
