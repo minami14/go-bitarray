@@ -12,14 +12,19 @@ type BitArray struct {
 const bits = 8
 
 // NewBitArray is BitArray constructed.
-func NewBitArray(size int) (*BitArray, error) {
-	if size <= 0 {
-		return nil, errors.New("size is 0 or less")
+func NewBitArray(length int) (*BitArray, error) {
+	if length < 0 {
+		return nil, errors.New("negative length argument")
+	}
+
+	blockSize := length / bits
+	if length%bits != 0 {
+		blockSize++
 	}
 
 	return &BitArray{
-		blocks: make([]byte, size/bits+1),
-		length: size,
+		blocks: make([]byte, blockSize),
+		length: length,
 	}, nil
 }
 
