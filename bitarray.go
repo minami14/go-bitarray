@@ -81,3 +81,26 @@ func (b *BitArray) Reset() {
 func (b *BitArray) Length() int {
 	return b.length
 }
+
+func (b *BitArray) Slice(start, end int) (*BitArray, error) {
+	size := end - start
+	bitArray, err := NewBitArray(size)
+	if err != nil {
+		return nil, err
+	}
+
+	for i := 0; i < size; i++ {
+		isSet, err := b.Get(i + start)
+		if err != nil {
+			return nil, err
+		}
+
+		if isSet {
+			if err := bitArray.Set(i); err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	return bitArray, nil
+}
