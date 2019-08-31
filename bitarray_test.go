@@ -91,7 +91,7 @@ func TestBitArray_Slice(t *testing.T) {
 		max = bitArray.length - start
 	}
 
-	for i := 0; i < end-start; i++ {
+	for i := 0; i < max; i++ {
 		isSetArray, err := bitArray.Get(i + start)
 		if err != nil {
 			t.Error(err)
