@@ -82,6 +82,7 @@ func (b *BitArray) Length() int {
 	return b.length
 }
 
+// Slice the BitArray
 func (b *BitArray) Slice(start, end int) (*BitArray, error) {
 	size := end - start
 	bitArray, err := NewBitArray(size)
@@ -89,7 +90,12 @@ func (b *BitArray) Slice(start, end int) (*BitArray, error) {
 		return nil, err
 	}
 
-	for i := 0; i < size; i++ {
+	copySize := size
+	if size > b.length-start {
+		copySize = b.length - start
+	}
+
+	for i := 0; i < copySize; i++ {
 		isSet, err := b.Get(i + start)
 		if err != nil {
 			return nil, err
