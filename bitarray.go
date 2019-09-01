@@ -82,7 +82,7 @@ func (b *BitArray) Length() int {
 	return b.length
 }
 
-// Slice the BitArray
+// Slice the BitArray.
 func (b *BitArray) Slice(start, end int) (*BitArray, error) {
 	size := end - start
 	bitArray, err := NewBitArray(size)
@@ -116,7 +116,7 @@ func (b *BitArray) Slice(start, end int) (*BitArray, error) {
 	return bitArray, nil
 }
 
-// Clone the BitArray
+// Clone the BitArray.
 func (b *BitArray) Clone() (*BitArray, error) {
 	clone, err := NewBitArray(b.length)
 	if err != nil {
@@ -130,7 +130,7 @@ func (b *BitArray) Clone() (*BitArray, error) {
 	return clone, nil
 }
 
-// Not inverts all bits
+// Not inverts all bits.
 func (b *BitArray) Not() (*BitArray, error) {
 	bitArray, err := NewBitArray(b.length)
 	if err != nil {
@@ -141,13 +141,15 @@ func (b *BitArray) Not() (*BitArray, error) {
 		bitArray.blocks[i] = ^v
 	}
 
-	mask := byte(0xFF) >> byte(b.length%bits)
-	bitArray.blocks[len(b.blocks)-1] &= mask
+	if len(b.blocks) > 0 && b.length%bits != 0 {
+		mask := byte(0xFF) >> byte(8-b.length%bits)
+		bitArray.blocks[len(b.blocks)-1] &= mask
+	}
 
 	return bitArray, err
 }
 
-// And is the logical AND of two BitArrays
+// And is the logical AND of two BitArrays.
 func And(a, b *BitArray) (*BitArray, error) {
 	if a.length > b.length {
 		a, b = b, a
@@ -162,13 +164,15 @@ func And(a, b *BitArray) (*BitArray, error) {
 		bitArray.blocks[i] = v & b.blocks[i]
 	}
 
-	mask := byte(0xFF) >> byte(a.length%bits)
-	bitArray.blocks[len(a.blocks)-1] &= mask
+	if len(a.blocks) > 0 && a.length%bits != 0 {
+		mask := byte(0xFF) >> byte(8-a.length%bits)
+		bitArray.blocks[len(a.blocks)-1] &= mask
+	}
 
 	return bitArray, nil
 }
 
-// Or is the logical OR of two BitArrays
+// Or is the logical OR of two BitArrays.
 func Or(a, b *BitArray) (*BitArray, error) {
 	if a.length > b.length {
 		a, b = b, a
@@ -183,13 +187,15 @@ func Or(a, b *BitArray) (*BitArray, error) {
 		bitArray.blocks[i] = v | b.blocks[i]
 	}
 
-	mask := byte(0xFF) >> byte(a.length%bits)
-	bitArray.blocks[len(a.blocks)-1] &= mask
+	if len(a.blocks) > 0 && a.length%bits != 0 {
+		mask := byte(0xFF) >> byte(8-a.length%bits)
+		bitArray.blocks[len(a.blocks)-1] &= mask
+	}
 
 	return bitArray, nil
 }
 
-// Xor is the Exclusive OR of two BitArrays
+// Xor is the Exclusive OR of two BitArrays.
 func Xor(a, b *BitArray) (*BitArray, error) {
 	if a.length > b.length {
 		a, b = b, a
@@ -204,13 +210,15 @@ func Xor(a, b *BitArray) (*BitArray, error) {
 		bitArray.blocks[i] = v ^ b.blocks[i]
 	}
 
-	mask := byte(0xFF) >> byte(a.length%bits)
-	bitArray.blocks[len(a.blocks)-1] &= mask
+	if len(a.blocks) > 0 && a.length%bits != 0 {
+		mask := byte(0xFF) >> byte(8-a.length%bits)
+		bitArray.blocks[len(a.blocks)-1] &= mask
+	}
 
 	return bitArray, nil
 }
 
-// AndNot clears bits specified by argument BitArray
+// AndNot clears bits specified by argument BitArray.
 func (b *BitArray) AndNot(bitArray *BitArray) (*BitArray, error) {
 	andNot, err := NewBitArray(b.length)
 	if err != nil {
@@ -228,8 +236,71 @@ func (b *BitArray) AndNot(bitArray *BitArray) (*BitArray, error) {
 		andNot.blocks[i] = bitArray.blocks[i] &^ v
 	}
 
-	mask := byte(0xFF) >> byte(andNot.length%bits)
-	andNot.blocks[len(b.blocks)-1] &= mask
+	if len(andNot.blocks) > 0 && andNot.length%bits != 0 {
+		mask := byte(0xFF) >> byte(8-b.length%bits)
+		andNot.blocks[len(andNot.blocks)-1] &= mask
+	}
 
 	return andNot, nil
+}
+
+// LeftShift shifts the BitArray to the left.
+func (b *BitArray) LeftShift(n int) (*BitArray, error) {
+	if n < 0 {
+		return b.RightShift(-n)
+	}
+
+	if n == 0 {
+		return b.Clone()
+	}
+
+	length := b.length + n
+
+	bitArray, err := NewBitArray(length)
+	if err != nil {
+		return nil, err
+	}
+
+	div := n / bits
+	mod := byte(n % bits)
+	for i := 1; i < len(b.blocks); i++ {
+		bitArray.blocks[i+div] = (b.blocks[i] << mod) | (b.blocks[i-1] >> (8 - mod))
+	}
+
+	if len(b.blocks) > 0 {
+		bitArray.blocks[div] = b.blocks[0] << mod
+		if len(b.blocks)+div < len(bitArray.blocks) {
+			bitArray.blocks[len(bitArray.blocks)-1] = b.blocks[len(b.blocks)-1] >> (8 - mod)
+		}
+	}
+
+	return bitArray, nil
+}
+
+// RightShift shifts the BitArray to the right.
+func (b *BitArray) RightShift(n int) (*BitArray, error) {
+	if n < 0 {
+		return b.LeftShift(-n)
+	}
+
+	if n == 0 {
+		return b.Clone()
+	}
+
+	bitArray, err := NewBitArray(b.length)
+	if err != nil {
+		return nil, err
+	}
+
+	div := n / bits
+	mod := byte(n % bits)
+	for i := div; i < len(b.blocks)-1; i++ {
+		bitArray.blocks[i-div] = (b.blocks[i] >> mod) | (b.blocks[i+1] << (8 - mod))
+	}
+
+	if len(b.blocks)-div > 0 {
+		bitArray.blocks[len(b.blocks)-1-div] = b.blocks[len(b.blocks)-1] >> mod
+	}
+
+	return bitArray, nil
 }
