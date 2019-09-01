@@ -233,3 +233,60 @@ func (b *BitArray) AndNot(bitArray *BitArray) (*BitArray, error) {
 
 	return andNot, nil
 }
+
+func (b *BitArray) LeftShift(n int) (*BitArray, error) {
+	if n < 0 {
+		return b.RightShift(-n)
+	}
+
+	if n == 0 {
+		return b.Clone()
+	}
+
+	length := b.length + n
+
+	bitArray, err := NewBitArray(length)
+	if err != nil {
+		return nil, err
+	}
+
+	div := n / bits
+	mod := byte(n % bits)
+	bitArray.blocks[div] = b.blocks[0] << mod
+	for i := 1; i < len(b.blocks); i++ {
+		bitArray.blocks[i+div] = (b.blocks[i] << mod) | (b.blocks[i-1] >> (8 - mod))
+	}
+
+	if (len(b.blocks)%bits)+int(mod) >= bits {
+		bitArray.blocks[len(bitArray.blocks)-1] = b.blocks[len(b.blocks)-1] >> (8 - mod)
+	}
+
+	return bitArray, nil
+}
+
+func (b *BitArray) RightShift(n int) (*BitArray, error) {
+	if n < 0 {
+		return b.LeftShift(-n)
+	}
+
+	if n == 0 {
+		return b.Clone()
+	}
+
+	bitArray, err := NewBitArray(b.length)
+	if err != nil {
+		return nil, err
+	}
+
+	div := n / bits
+	mod := byte(n % bits)
+	for i := div; i < len(b.blocks)-1; i++ {
+		bitArray.blocks[i-div] = (b.blocks[i] >> mod) | (b.blocks[i+1] << (8 - mod))
+	}
+
+	if len(b.blocks)-div > 0 {
+		bitArray.blocks[len(b.blocks)-1-div] = b.blocks[len(b.blocks)-1] >> mod
+	}
+
+	return bitArray, nil
+}
