@@ -124,3 +124,107 @@ func (b *BitArray) Clone() (*BitArray, error) {
 
 	return clone, nil
 }
+
+// Not inverts all bits
+func (b *BitArray) Not() (*BitArray, error) {
+	bitArray, err := NewBitArray(b.length)
+	if err != nil {
+		return nil, err
+	}
+
+	for i, v := range b.blocks {
+		bitArray.blocks[i] = ^v
+	}
+
+	mask := byte(0xFF) >> byte(b.length%bits)
+	bitArray.blocks[len(b.blocks)-1] &= mask
+
+	return bitArray, err
+}
+
+// And is the logical AND of two BitArrays
+func And(a, b *BitArray) (*BitArray, error) {
+	if a.length > b.length {
+		a, b = b, a
+	}
+
+	bitArray, err := NewBitArray(b.length)
+	if err != nil {
+		return nil, err
+	}
+
+	for i, v := range a.blocks {
+		bitArray.blocks[i] = v & b.blocks[i]
+	}
+
+	mask := byte(0xFF) >> byte(a.length%bits)
+	bitArray.blocks[len(a.blocks)-1] &= mask
+
+	return bitArray, nil
+}
+
+// Or is the logical OR of two BitArrays
+func Or(a, b *BitArray) (*BitArray, error) {
+	if a.length > b.length {
+		a, b = b, a
+	}
+
+	bitArray, err := NewBitArray(b.length)
+	if err != nil {
+		return nil, err
+	}
+
+	for i, v := range a.blocks {
+		bitArray.blocks[i] = v | b.blocks[i]
+	}
+
+	mask := byte(0xFF) >> byte(a.length%bits)
+	bitArray.blocks[len(a.blocks)-1] &= mask
+
+	return bitArray, nil
+}
+
+// Xor is the Exclusive OR of two BitArrays
+func Xor(a, b *BitArray) (*BitArray, error) {
+	if a.length > b.length {
+		a, b = b, a
+	}
+
+	bitArray, err := NewBitArray(b.length)
+	if err != nil {
+		return nil, err
+	}
+
+	for i, v := range a.blocks {
+		bitArray.blocks[i] = v ^ b.blocks[i]
+	}
+
+	mask := byte(0xFF) >> byte(a.length%bits)
+	bitArray.blocks[len(a.blocks)-1] &= mask
+
+	return bitArray, nil
+}
+
+// AndNot clears bits specified by argument BitArray
+func (b *BitArray) AndNot(bitArray *BitArray) (*BitArray, error) {
+	andNot, err := NewBitArray(b.length)
+	if err != nil {
+		return nil, err
+	}
+
+	if bitArray.length != b.length {
+		bitArray, err = bitArray.Slice(0, b.length)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	for i, v := range b.blocks {
+		andNot.blocks[i] = bitArray.blocks[i] &^ v
+	}
+
+	mask := byte(0xFF) >> byte(andNot.length%bits)
+	andNot.blocks[len(b.blocks)-1] &= mask
+
+	return andNot, nil
+}

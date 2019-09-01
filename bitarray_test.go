@@ -67,6 +67,240 @@ func TestBitArray(t *testing.T) {
 	}
 }
 
+func TestBitArray_Not(t *testing.T) {
+	bitArray, err := NewBitArray(1000)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for i := 0; i < bitArray.length; i += 7 {
+		if err := bitArray.Set(i); err != nil {
+			t.Error(err)
+		}
+	}
+
+	not, err := bitArray.Not()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for i := 0; i < bitArray.length; i++ {
+		b, err := bitArray.Get(i)
+		if err != nil {
+			t.Error(err)
+		}
+
+		n, err := not.Get(i)
+		if err != nil {
+			t.Error(err)
+		}
+
+		if b == n {
+			t.Errorf("value matches %v", i)
+		}
+	}
+}
+
+func TestBitArray_AndNot(t *testing.T) {
+	bitArrayA, err := NewBitArray(1000)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for i := 0; i < bitArrayA.length; i += 7 {
+		if err := bitArrayA.Set(i); err != nil {
+			t.Error(err)
+		}
+	}
+
+	bitArrayB, err := NewBitArray(1000)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for i := 0; i < bitArrayB.length; i += 4 {
+		if err := bitArrayB.Set(i); err != nil {
+			t.Error(err)
+		}
+	}
+
+	bitArrayAndNot, err := bitArrayA.AndNot(bitArrayB)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for i := 0; i < 1000; i++ {
+		a, err := bitArrayA.Get(i)
+		if err != nil {
+			t.Error(err)
+		}
+
+		b, err := bitArrayB.Get(i)
+		if err != nil {
+			t.Error(err)
+		}
+
+		andNot, err := bitArrayAndNot.Get(i)
+		if err != nil {
+			t.Error(err)
+		}
+
+		if andNot != ((!a) && b) {
+			t.Errorf("value does not match %v %v %v %v", i, a, b, andNot)
+		}
+	}
+}
+
+func TestAnd(t *testing.T) {
+	bitArrayA, err := NewBitArray(1000)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for i := 0; i < bitArrayA.length; i += 7 {
+		if err := bitArrayA.Set(i); err != nil {
+			t.Error(err)
+		}
+	}
+
+	bitArrayB, err := NewBitArray(1000)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for i := 0; i < bitArrayB.length; i += 4 {
+		if err := bitArrayB.Set(i); err != nil {
+			t.Error(err)
+		}
+	}
+
+	bitArrayAnd, err := And(bitArrayA, bitArrayB)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for i := 0; i < 1000; i++ {
+		a, err := bitArrayA.Get(i)
+		if err != nil {
+			t.Error(err)
+		}
+
+		b, err := bitArrayB.Get(i)
+		if err != nil {
+			t.Error(err)
+		}
+
+		and, err := bitArrayAnd.Get(i)
+		if err != nil {
+			t.Error(err)
+		}
+
+		if and != (a && b) {
+			t.Error("value does not match")
+		}
+	}
+}
+
+func TestOr(t *testing.T) {
+	bitArrayA, err := NewBitArray(1000)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for i := 0; i < bitArrayA.length; i += 7 {
+		if err := bitArrayA.Set(i); err != nil {
+			t.Error(err)
+		}
+	}
+
+	bitArrayB, err := NewBitArray(1000)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for i := 0; i < bitArrayB.length; i += 4 {
+		if err := bitArrayB.Set(i); err != nil {
+			t.Error(err)
+		}
+	}
+
+	bitArrayOr, err := Or(bitArrayA, bitArrayB)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for i := 0; i < 1000; i++ {
+		a, err := bitArrayA.Get(i)
+		if err != nil {
+			t.Error(err)
+		}
+
+		b, err := bitArrayB.Get(i)
+		if err != nil {
+			t.Error(err)
+		}
+
+		or, err := bitArrayOr.Get(i)
+		if err != nil {
+			t.Error(err)
+		}
+
+		if or != (a || b) {
+			t.Error("value does not match")
+		}
+	}
+}
+
+func TestXor(t *testing.T) {
+	bitArrayA, err := NewBitArray(1000)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for i := 0; i < bitArrayA.length; i += 7 {
+		if err := bitArrayA.Set(i); err != nil {
+			t.Error(err)
+		}
+	}
+
+	bitArrayB, err := NewBitArray(1000)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for i := 0; i < bitArrayB.length; i += 4 {
+		if err := bitArrayB.Set(i); err != nil {
+			t.Error(err)
+		}
+	}
+
+	bitArrayXor, err := Xor(bitArrayA, bitArrayB)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for i := 0; i < 1000; i++ {
+		a, err := bitArrayA.Get(i)
+		if err != nil {
+			t.Error(err)
+		}
+
+		b, err := bitArrayB.Get(i)
+		if err != nil {
+			t.Error(err)
+		}
+
+		xor, err := bitArrayXor.Get(i)
+		if err != nil {
+			t.Error(err)
+		}
+
+		if xor != (a != b) {
+			t.Error("value does not match")
+		}
+	}
+}
+
 func TestBitArray_Slice(t *testing.T) {
 	bitArray, err := NewBitArray(1000)
 	if err != nil {
