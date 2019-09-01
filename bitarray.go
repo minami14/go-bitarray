@@ -183,3 +183,27 @@ func Or(a, b *BitArray) (*BitArray, error) {
 
 	return bitArray, nil
 }
+
+// AndNot clears bits specified by argument BitArray
+func (b *BitArray) AndNot(bitArray *BitArray) (*BitArray, error) {
+	andNot, err := NewBitArray(b.length)
+	if err != nil {
+		return nil, err
+	}
+
+	if bitArray.length != b.length {
+		bitArray, err = bitArray.Slice(0, b.length)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	for i, v := range b.blocks {
+		andNot.blocks[i] = bitArray.blocks[i] &^ v
+	}
+
+	mask := byte(0xFF) >> byte(andNot.length%bits)
+	andNot.blocks[len(b.blocks)-1] &= mask
+
+	return andNot, nil
+}

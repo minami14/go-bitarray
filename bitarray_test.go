@@ -101,6 +101,56 @@ func TestBitArray_Not(t *testing.T) {
 	}
 }
 
+func TestBitArray_AndNot(t *testing.T) {
+	bitArrayA, err := NewBitArray(1000)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for i := 0; i < bitArrayA.length; i += 7 {
+		if err := bitArrayA.Set(i); err != nil {
+			t.Error(err)
+		}
+	}
+
+	bitArrayB, err := NewBitArray(1000)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for i := 0; i < bitArrayB.length; i += 4 {
+		if err := bitArrayB.Set(i); err != nil {
+			t.Error(err)
+		}
+	}
+
+	bitArrayAndNot, err := bitArrayA.AndNot(bitArrayB)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for i := 0; i < 1000; i++ {
+		a, err := bitArrayA.Get(i)
+		if err != nil {
+			t.Error(err)
+		}
+
+		b, err := bitArrayB.Get(i)
+		if err != nil {
+			t.Error(err)
+		}
+
+		andNot, err := bitArrayAndNot.Get(i)
+		if err != nil {
+			t.Error(err)
+		}
+
+		if andNot != ((!a) && b) {
+			t.Errorf("value does not match %v %v %v %v", i, a, b, andNot)
+		}
+	}
+}
+
 func TestAnd(t *testing.T) {
 	bitArrayA, err := NewBitArray(1000)
 	if err != nil {
