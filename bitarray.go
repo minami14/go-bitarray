@@ -163,7 +163,7 @@ func And(a, b *BitArray) (*BitArray, error) {
 	return bitArray, nil
 }
 
-// Or is the logical Or of two BitArrays
+// Or is the logical OR of two BitArrays
 func Or(a, b *BitArray) (*BitArray, error) {
 	if a.length > b.length {
 		a, b = b, a
@@ -184,6 +184,7 @@ func Or(a, b *BitArray) (*BitArray, error) {
 	return bitArray, nil
 }
 
+// Xor is the Exclusive OR of two BitArrays
 func Xor(a, b *BitArray) (*BitArray, error) {
 	if a.length > b.length {
 		a, b = b, a
