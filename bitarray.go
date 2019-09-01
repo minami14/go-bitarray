@@ -141,8 +141,10 @@ func (b *BitArray) Not() (*BitArray, error) {
 		bitArray.blocks[i] = ^v
 	}
 
-	mask := byte(0xFF) >> byte(b.length%bits)
-	bitArray.blocks[len(b.blocks)-1] &= mask
+	if len(b.blocks) > 0 && b.length%bits != 0 {
+		mask := byte(0xFF) >> byte(8-b.length%bits)
+		bitArray.blocks[len(b.blocks)-1] &= mask
+	}
 
 	return bitArray, err
 }
@@ -162,8 +164,10 @@ func And(a, b *BitArray) (*BitArray, error) {
 		bitArray.blocks[i] = v & b.blocks[i]
 	}
 
-	mask := byte(0xFF) >> byte(a.length%bits)
-	bitArray.blocks[len(a.blocks)-1] &= mask
+	if len(a.blocks) > 0 && a.length%bits != 0 {
+		mask := byte(0xFF) >> byte(8-a.length%bits)
+		bitArray.blocks[len(a.blocks)-1] &= mask
+	}
 
 	return bitArray, nil
 }
@@ -183,8 +187,10 @@ func Or(a, b *BitArray) (*BitArray, error) {
 		bitArray.blocks[i] = v | b.blocks[i]
 	}
 
-	mask := byte(0xFF) >> byte(a.length%bits)
-	bitArray.blocks[len(a.blocks)-1] &= mask
+	if len(a.blocks) > 0 && a.length%bits != 0 {
+		mask := byte(0xFF) >> byte(8-a.length%bits)
+		bitArray.blocks[len(a.blocks)-1] &= mask
+	}
 
 	return bitArray, nil
 }
@@ -204,8 +210,10 @@ func Xor(a, b *BitArray) (*BitArray, error) {
 		bitArray.blocks[i] = v ^ b.blocks[i]
 	}
 
-	mask := byte(0xFF) >> byte(a.length%bits)
-	bitArray.blocks[len(a.blocks)-1] &= mask
+	if len(a.blocks) > 0 && a.length%bits != 0 {
+		mask := byte(0xFF) >> byte(8-a.length%bits)
+		bitArray.blocks[len(a.blocks)-1] &= mask
+	}
 
 	return bitArray, nil
 }
@@ -228,8 +236,10 @@ func (b *BitArray) AndNot(bitArray *BitArray) (*BitArray, error) {
 		andNot.blocks[i] = bitArray.blocks[i] &^ v
 	}
 
-	mask := byte(0xFF) >> byte(andNot.length%bits)
-	andNot.blocks[len(b.blocks)-1] &= mask
+	if len(andNot.blocks) > 0 && andNot.length%bits != 0 {
+		mask := byte(0xFF) >> byte(8-b.length%bits)
+		andNot.blocks[len(andNot.blocks)-1] &= mask
+	}
 
 	return andNot, nil
 }
@@ -252,13 +262,15 @@ func (b *BitArray) LeftShift(n int) (*BitArray, error) {
 
 	div := n / bits
 	mod := byte(n % bits)
-	bitArray.blocks[div] = b.blocks[0] << mod
 	for i := 1; i < len(b.blocks); i++ {
 		bitArray.blocks[i+div] = (b.blocks[i] << mod) | (b.blocks[i-1] >> (8 - mod))
 	}
 
-	if (len(b.blocks)%bits)+int(mod) >= bits {
-		bitArray.blocks[len(bitArray.blocks)-1] = b.blocks[len(b.blocks)-1] >> (8 - mod)
+	if len(b.blocks) > 0 {
+		bitArray.blocks[div] = b.blocks[0] << mod
+		if len(b.blocks)+div < len(bitArray.blocks) {
+			bitArray.blocks[len(bitArray.blocks)-1] = b.blocks[len(b.blocks)-1] >> (8 - mod)
+		}
 	}
 
 	return bitArray, nil

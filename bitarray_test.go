@@ -2,319 +2,86 @@ package bitarray
 
 import (
 	"errors"
-	"math"
 	"testing"
 )
 
 func TestBitArray(t *testing.T) {
-	bitArray, err := NewBitArray(math.MaxInt16)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	for i := 0; i < bitArray.Length(); i++ {
-		bit, err := bitArray.Get(i)
+	for length := 0; length < 1000; length++ {
+		bitArray, err := NewBitArray(length)
 		if err != nil {
-			t.Error(err)
+			t.Fatal(err)
 		}
 
-		if bit {
-			t.Error("initialize error")
+		for i := 0; i < bitArray.Length(); i++ {
+			bit, err := bitArray.Get(i)
+			if err != nil {
+				t.Error(err)
+			}
+
+			if bit {
+				t.Error("initialize error")
+			}
+
+			if err := bitArray.Set(i); err != nil {
+				t.Error(err)
+			}
+
+			bit, err = bitArray.Get(i)
+			if err != nil {
+				t.Error(err)
+			}
+
+			if !bit {
+				t.Error("set error")
+			}
+
+			if err := bitArray.Clear(i); err != nil {
+				t.Error(err)
+			}
+
+			bit, err = bitArray.Get(i)
+			if err != nil {
+				t.Error(err)
+			}
+
+			if bit {
+				t.Error("clear error")
+			}
+
+			if err := bitArray.Set(i); err != nil {
+				t.Error(err)
+			}
 		}
 
-		if err := bitArray.Set(i); err != nil {
-			t.Error(err)
-		}
+		bitArray.Reset()
 
-		bit, err = bitArray.Get(i)
-		if err != nil {
-			t.Error(err)
-		}
+		for i := 0; i < bitArray.Length(); i++ {
+			bit, err := bitArray.Get(i)
+			if err != nil {
+				t.Error(err)
+			}
 
-		if !bit {
-			t.Error("set error")
-		}
-
-		if err := bitArray.Clear(i); err != nil {
-			t.Error(err)
-		}
-
-		bit, err = bitArray.Get(i)
-		if err != nil {
-			t.Error(err)
-		}
-
-		if bit {
-			t.Error("clear error")
-		}
-
-		if err := bitArray.Set(i); err != nil {
-			t.Error(err)
-		}
-	}
-
-	bitArray.Reset()
-
-	for i := 0; i < bitArray.Length(); i++ {
-		bit, err := bitArray.Get(i)
-		if err != nil {
-			t.Error(err)
-		}
-
-		if bit {
-			t.Error("reset error")
+			if bit {
+				t.Error("reset error")
+			}
 		}
 	}
 }
 
 func TestBitArray_Not(t *testing.T) {
-	bitArray, err := NewBitArray(1000)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	for i := 0; i < bitArray.length; i += 7 {
-		if err := bitArray.Set(i); err != nil {
-			t.Error(err)
-		}
-	}
-
-	not, err := bitArray.Not()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	for i := 0; i < bitArray.length; i++ {
-		b, err := bitArray.Get(i)
+	for length := 0; length < 10000; length++ {
+		bitArray, err := NewBitArray(length)
 		if err != nil {
-			t.Error(err)
+			t.Fatal(err)
 		}
 
-		n, err := not.Get(i)
-		if err != nil {
-			t.Error(err)
+		for i := 0; i < bitArray.length; i += 7 {
+			if err := bitArray.Set(i); err != nil {
+				t.Error(err)
+			}
 		}
 
-		if b == n {
-			t.Errorf("value matches %v", i)
-		}
-	}
-}
-
-func TestBitArray_AndNot(t *testing.T) {
-	bitArrayA, err := NewBitArray(1000)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	for i := 0; i < bitArrayA.length; i += 7 {
-		if err := bitArrayA.Set(i); err != nil {
-			t.Error(err)
-		}
-	}
-
-	bitArrayB, err := NewBitArray(1000)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	for i := 0; i < bitArrayB.length; i += 4 {
-		if err := bitArrayB.Set(i); err != nil {
-			t.Error(err)
-		}
-	}
-
-	bitArrayAndNot, err := bitArrayA.AndNot(bitArrayB)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	for i := 0; i < 1000; i++ {
-		a, err := bitArrayA.Get(i)
-		if err != nil {
-			t.Error(err)
-		}
-
-		b, err := bitArrayB.Get(i)
-		if err != nil {
-			t.Error(err)
-		}
-
-		andNot, err := bitArrayAndNot.Get(i)
-		if err != nil {
-			t.Error(err)
-		}
-
-		if andNot != ((!a) && b) {
-			t.Errorf("value does not match %v %v %v %v", i, a, b, andNot)
-		}
-	}
-}
-
-func TestAnd(t *testing.T) {
-	bitArrayA, err := NewBitArray(1000)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	for i := 0; i < bitArrayA.length; i += 7 {
-		if err := bitArrayA.Set(i); err != nil {
-			t.Error(err)
-		}
-	}
-
-	bitArrayB, err := NewBitArray(1000)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	for i := 0; i < bitArrayB.length; i += 4 {
-		if err := bitArrayB.Set(i); err != nil {
-			t.Error(err)
-		}
-	}
-
-	bitArrayAnd, err := And(bitArrayA, bitArrayB)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	for i := 0; i < 1000; i++ {
-		a, err := bitArrayA.Get(i)
-		if err != nil {
-			t.Error(err)
-		}
-
-		b, err := bitArrayB.Get(i)
-		if err != nil {
-			t.Error(err)
-		}
-
-		and, err := bitArrayAnd.Get(i)
-		if err != nil {
-			t.Error(err)
-		}
-
-		if and != (a && b) {
-			t.Error("value does not match")
-		}
-	}
-}
-
-func TestOr(t *testing.T) {
-	bitArrayA, err := NewBitArray(1000)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	for i := 0; i < bitArrayA.length; i += 7 {
-		if err := bitArrayA.Set(i); err != nil {
-			t.Error(err)
-		}
-	}
-
-	bitArrayB, err := NewBitArray(1000)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	for i := 0; i < bitArrayB.length; i += 4 {
-		if err := bitArrayB.Set(i); err != nil {
-			t.Error(err)
-		}
-	}
-
-	bitArrayOr, err := Or(bitArrayA, bitArrayB)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	for i := 0; i < 1000; i++ {
-		a, err := bitArrayA.Get(i)
-		if err != nil {
-			t.Error(err)
-		}
-
-		b, err := bitArrayB.Get(i)
-		if err != nil {
-			t.Error(err)
-		}
-
-		or, err := bitArrayOr.Get(i)
-		if err != nil {
-			t.Error(err)
-		}
-
-		if or != (a || b) {
-			t.Error("value does not match")
-		}
-	}
-}
-
-func TestXor(t *testing.T) {
-	bitArrayA, err := NewBitArray(1000)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	for i := 0; i < bitArrayA.length; i += 7 {
-		if err := bitArrayA.Set(i); err != nil {
-			t.Error(err)
-		}
-	}
-
-	bitArrayB, err := NewBitArray(1000)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	for i := 0; i < bitArrayB.length; i += 4 {
-		if err := bitArrayB.Set(i); err != nil {
-			t.Error(err)
-		}
-	}
-
-	bitArrayXor, err := Xor(bitArrayA, bitArrayB)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	for i := 0; i < 1000; i++ {
-		a, err := bitArrayA.Get(i)
-		if err != nil {
-			t.Error(err)
-		}
-
-		b, err := bitArrayB.Get(i)
-		if err != nil {
-			t.Error(err)
-		}
-
-		xor, err := bitArrayXor.Get(i)
-		if err != nil {
-			t.Error(err)
-		}
-
-		if xor != (a != b) {
-			t.Error("value does not match")
-		}
-	}
-}
-
-func TestBitArray_LeftShift(t *testing.T) {
-	bitArray, err := NewBitArray(1000)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	for i := 0; i < bitArray.length; i += 7 {
-		if err := bitArray.Set(i); err != nil {
-			t.Error(err)
-		}
-	}
-
-	for n := 0; n < 128; n++ {
-		bitArrayLeft, err := bitArray.LeftShift(n)
+		not, err := bitArray.Not()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -325,125 +92,377 @@ func TestBitArray_LeftShift(t *testing.T) {
 				t.Error(err)
 			}
 
-			left, err := bitArrayLeft.Get(i + n)
+			n, err := not.Get(i)
 			if err != nil {
 				t.Error(err)
 			}
 
-			if b != left {
-				t.Errorf("value does not match %v %v %v %v", i, n, b, left)
+			if b == n {
+				t.Errorf("value matches %v", i)
+			}
+		}
+	}
+}
+
+func TestBitArray_AndNot(t *testing.T) {
+	for length := 0; length < 10000; length++ {
+		bitArrayA, err := NewBitArray(length)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		for i := 0; i < bitArrayA.length; i += 7 {
+			if err := bitArrayA.Set(i); err != nil {
+				t.Error(err)
+			}
+		}
+
+		bitArrayB, err := NewBitArray(length)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		for i := 0; i < bitArrayB.length; i += 4 {
+			if err := bitArrayB.Set(i); err != nil {
+				t.Error(err)
+			}
+		}
+
+		bitArrayAndNot, err := bitArrayA.AndNot(bitArrayB)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		for i := 0; i < length; i++ {
+			a, err := bitArrayA.Get(i)
+			if err != nil {
+				t.Error(err)
+			}
+
+			b, err := bitArrayB.Get(i)
+			if err != nil {
+				t.Error(err)
+			}
+
+			andNot, err := bitArrayAndNot.Get(i)
+			if err != nil {
+				t.Error(err)
+			}
+
+			if andNot != ((!a) && b) {
+				t.Errorf("value does not match %v %v %v %v", i, a, b, andNot)
+			}
+		}
+	}
+}
+
+func TestAnd(t *testing.T) {
+	for length := 0; length < 10000; length++ {
+		bitArrayA, err := NewBitArray(length)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		for i := 0; i < bitArrayA.length; i += 7 {
+			if err := bitArrayA.Set(i); err != nil {
+				t.Error(err)
+			}
+		}
+
+		bitArrayB, err := NewBitArray(length)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		for i := 0; i < bitArrayB.length; i += 4 {
+			if err := bitArrayB.Set(i); err != nil {
+				t.Error(err)
+			}
+		}
+
+		bitArrayAnd, err := And(bitArrayA, bitArrayB)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		for i := 0; i < length; i++ {
+			a, err := bitArrayA.Get(i)
+			if err != nil {
+				t.Error(err)
+			}
+
+			b, err := bitArrayB.Get(i)
+			if err != nil {
+				t.Error(err)
+			}
+
+			and, err := bitArrayAnd.Get(i)
+			if err != nil {
+				t.Error(err)
+			}
+
+			if and != (a && b) {
+				t.Error("value does not match")
+			}
+		}
+	}
+}
+
+func TestOr(t *testing.T) {
+	for length := 0; length < 10000; length++ {
+		bitArrayA, err := NewBitArray(length)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		for i := 0; i < bitArrayA.length; i += 7 {
+			if err := bitArrayA.Set(i); err != nil {
+				t.Error(err)
+			}
+		}
+
+		bitArrayB, err := NewBitArray(length)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		for i := 0; i < bitArrayB.length; i += 4 {
+			if err := bitArrayB.Set(i); err != nil {
+				t.Error(err)
+			}
+		}
+
+		bitArrayOr, err := Or(bitArrayA, bitArrayB)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		for i := 0; i < length; i++ {
+			a, err := bitArrayA.Get(i)
+			if err != nil {
+				t.Error(err)
+			}
+
+			b, err := bitArrayB.Get(i)
+			if err != nil {
+				t.Error(err)
+			}
+
+			or, err := bitArrayOr.Get(i)
+			if err != nil {
+				t.Error(err)
+			}
+
+			if or != (a || b) {
+				t.Error("value does not match")
+			}
+		}
+	}
+}
+
+func TestXor(t *testing.T) {
+	for length := 0; length < 10000; length++ {
+		bitArrayA, err := NewBitArray(length)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		for i := 0; i < bitArrayA.length; i += 7 {
+			if err := bitArrayA.Set(i); err != nil {
+				t.Error(err)
+			}
+		}
+
+		bitArrayB, err := NewBitArray(length)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		for i := 0; i < bitArrayB.length; i += 4 {
+			if err := bitArrayB.Set(i); err != nil {
+				t.Error(err)
+			}
+		}
+
+		bitArrayXor, err := Xor(bitArrayA, bitArrayB)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		for i := 0; i < length; i++ {
+			a, err := bitArrayA.Get(i)
+			if err != nil {
+				t.Error(err)
+			}
+
+			b, err := bitArrayB.Get(i)
+			if err != nil {
+				t.Error(err)
+			}
+
+			xor, err := bitArrayXor.Get(i)
+			if err != nil {
+				t.Error(err)
+			}
+
+			if xor != (a != b) {
+				t.Error("value does not match")
+			}
+		}
+	}
+}
+
+func TestBitArray_LeftShift(t *testing.T) {
+	for length := 0; length < 1000; length++ {
+		bitArray, err := NewBitArray(length)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		for i := 0; i < bitArray.length; i += 7 {
+			if err := bitArray.Set(i); err != nil {
+				t.Error(err)
+			}
+		}
+
+		for n := 0; n < 128; n++ {
+			bitArrayLeft, err := bitArray.LeftShift(n)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			for i := 0; i < bitArray.length; i++ {
+				b, err := bitArray.Get(i)
+				if err != nil {
+					t.Error(err)
+				}
+
+				left, err := bitArrayLeft.Get(i + n)
+				if err != nil {
+					t.Error(err)
+				}
+
+				if b != left {
+					t.Errorf("value does not match %v %v %v %v", i, n, b, left)
+				}
 			}
 		}
 	}
 }
 
 func TestBitArray_RightShift(t *testing.T) {
-	bitArray, err := NewBitArray(1000)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	for i := 0; i < bitArray.length; i += 7 {
-		if err := bitArray.Set(i); err != nil {
-			t.Error(err)
-		}
-	}
-
-	for n := 0; n < 128; n++ {
-		bitArrayRight, err := bitArray.RightShift(n)
+	for length := 0; length < 1000; length++ {
+		bitArray, err := NewBitArray(length)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		for i := n; i < bitArray.length; i++ {
-			b, err := bitArray.Get(i)
-			if err != nil {
+		for i := 0; i < bitArray.length; i += 7 {
+			if err := bitArray.Set(i); err != nil {
 				t.Error(err)
 			}
+		}
 
-			right, err := bitArrayRight.Get(i - n)
+		for n := 0; n < 128; n++ {
+			bitArrayRight, err := bitArray.RightShift(n)
 			if err != nil {
-				t.Error(err)
+				t.Fatal(err)
 			}
 
-			if b != right {
-				t.Errorf("value does not match %v %v %v %v", i, n, b, right)
+			for i := n; i < bitArray.length; i++ {
+				b, err := bitArray.Get(i)
+				if err != nil {
+					t.Error(err)
+				}
+
+				right, err := bitArrayRight.Get(i - n)
+				if err != nil {
+					t.Error(err)
+				}
+
+				if b != right {
+					t.Errorf("value does not match %v %v %v %v", i, n, b, right)
+				}
 			}
 		}
 	}
 }
 
 func TestBitArray_Slice(t *testing.T) {
-	bitArray, err := NewBitArray(1000)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	for i := 0; i < bitArray.length; i += 7 {
-		if err := bitArray.Set(i); err != nil {
-			t.Error(err)
-		}
-	}
-
-	start := 200
-	end := 900
-	bitSlice, err := bitArray.Slice(start, end)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	max := end - start
-	if max > bitArray.length-start {
-		max = bitArray.length - start
-	}
-
-	for i := 0; i < max; i++ {
-		isSetArray, err := bitArray.Get(i + start)
+	for length := 0; length < 10000; length++ {
+		bitArray, err := NewBitArray(length)
 		if err != nil {
-			t.Error(err)
+			t.Fatal(err)
 		}
 
-		isSetSlice, err := bitSlice.Get(i)
+		for i := 0; i < bitArray.length; i += 7 {
+			if err := bitArray.Set(i); err != nil {
+				t.Error(err)
+			}
+		}
+
+		start := 200
+		end := 900
+		bitSlice, err := bitArray.Slice(start, end)
 		if err != nil {
-			t.Error(err)
+			t.Fatal(err)
 		}
 
-		if isSetArray != isSetSlice {
-			t.Error("value does not match")
+		max := end - start
+		if max > bitArray.length-start {
+			max = bitArray.length - start
+		}
+
+		for i := 0; i < max; i++ {
+			isSetArray, err := bitArray.Get(i + start)
+			if err != nil {
+				t.Error(err)
+			}
+
+			isSetSlice, err := bitSlice.Get(i)
+			if err != nil {
+				t.Error(err)
+			}
+
+			if isSetArray != isSetSlice {
+				t.Error("value does not match")
+			}
 		}
 	}
 }
 
 func TestBitArray_Clone(t *testing.T) {
-	bitArray, err := NewBitArray(1000)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	for i := 0; i < bitArray.length; i += 7 {
-		if err := bitArray.Set(i); err != nil {
-			t.Error(err)
-		}
-	}
-
-	clone, err := bitArray.Clone()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	for i := 0; i < bitArray.length; i++ {
-		isSetArray, err := bitArray.Get(i)
+	for length := 0; length < 10000; length++ {
+		bitArray, err := NewBitArray(length)
 		if err != nil {
-			t.Error(err)
+			t.Fatal(err)
 		}
 
-		isSetSlice, err := clone.Get(i)
+		for i := 0; i < bitArray.length; i += 7 {
+			if err := bitArray.Set(i); err != nil {
+				t.Error(err)
+			}
+		}
+
+		clone, err := bitArray.Clone()
 		if err != nil {
-			t.Error(err)
+			t.Fatal(err)
 		}
 
-		if isSetArray != isSetSlice {
-			t.Error("value does not match")
+		for i := 0; i < bitArray.length; i++ {
+			isSetArray, err := bitArray.Get(i)
+			if err != nil {
+				t.Error(err)
+			}
+
+			isSetSlice, err := clone.Get(i)
+			if err != nil {
+				t.Error(err)
+			}
+
+			if isSetArray != isSetSlice {
+				t.Error("value does not match")
+			}
 		}
 	}
 }
