@@ -95,7 +95,12 @@ func (b *BitArray) Slice(start, end int) (*BitArray, error) {
 		copySize = b.length - start
 	}
 
-	for i := 0; i < copySize; i++ {
+	i := 0
+	if start < 0 {
+		i = -start
+	}
+
+	for ; i < copySize; i++ {
 		isSet, err := b.Get(i + start)
 		if err != nil {
 			return nil, err
