@@ -224,7 +224,7 @@ func TestOr(t *testing.T) {
 		}
 	}
 
-	bitArrayAnd, err := Or(bitArrayA, bitArrayB)
+	bitArrayOr, err := Or(bitArrayA, bitArrayB)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -240,12 +240,62 @@ func TestOr(t *testing.T) {
 			t.Error(err)
 		}
 
-		and, err := bitArrayAnd.Get(i)
+		or, err := bitArrayOr.Get(i)
 		if err != nil {
 			t.Error(err)
 		}
 
-		if and != (a || b) {
+		if or != (a || b) {
+			t.Error("value does not match")
+		}
+	}
+}
+
+func TestXor(t *testing.T) {
+	bitArrayA, err := NewBitArray(1000)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for i := 0; i < bitArrayA.length; i += 7 {
+		if err := bitArrayA.Set(i); err != nil {
+			t.Error(err)
+		}
+	}
+
+	bitArrayB, err := NewBitArray(1000)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for i := 0; i < bitArrayB.length; i += 4 {
+		if err := bitArrayB.Set(i); err != nil {
+			t.Error(err)
+		}
+	}
+
+	bitArrayXor, err := Xor(bitArrayA, bitArrayB)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for i := 0; i < 1000; i++ {
+		a, err := bitArrayA.Get(i)
+		if err != nil {
+			t.Error(err)
+		}
+
+		b, err := bitArrayB.Get(i)
+		if err != nil {
+			t.Error(err)
+		}
+
+		xor, err := bitArrayXor.Get(i)
+		if err != nil {
+			t.Error(err)
+		}
+
+		if xor != (a != b) {
 			t.Error("value does not match")
 		}
 	}

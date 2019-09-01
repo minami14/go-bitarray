@@ -184,6 +184,26 @@ func Or(a, b *BitArray) (*BitArray, error) {
 	return bitArray, nil
 }
 
+func Xor(a, b *BitArray) (*BitArray, error) {
+	if a.length > b.length {
+		a, b = b, a
+	}
+
+	bitArray, err := NewBitArray(b.length)
+	if err != nil {
+		return nil, err
+	}
+
+	for i, v := range a.blocks {
+		bitArray.blocks[i] = v ^ b.blocks[i]
+	}
+
+	mask := byte(0xFF) >> byte(a.length%bits)
+	bitArray.blocks[len(a.blocks)-1] &= mask
+
+	return bitArray, nil
+}
+
 // AndNot clears bits specified by argument BitArray
 func (b *BitArray) AndNot(bitArray *BitArray) (*BitArray, error) {
 	andNot, err := NewBitArray(b.length)
