@@ -82,7 +82,7 @@ func (b *BitArray) Length() int {
 	return b.length
 }
 
-// Slice the BitArray
+// Slice the BitArray.
 func (b *BitArray) Slice(start, end int) (*BitArray, error) {
 	size := end - start
 	bitArray, err := NewBitArray(size)
@@ -116,7 +116,7 @@ func (b *BitArray) Slice(start, end int) (*BitArray, error) {
 	return bitArray, nil
 }
 
-// Clone the BitArray
+// Clone the BitArray.
 func (b *BitArray) Clone() (*BitArray, error) {
 	clone, err := NewBitArray(b.length)
 	if err != nil {
@@ -130,7 +130,7 @@ func (b *BitArray) Clone() (*BitArray, error) {
 	return clone, nil
 }
 
-// Not inverts all bits
+// Not inverts all bits.
 func (b *BitArray) Not() (*BitArray, error) {
 	bitArray, err := NewBitArray(b.length)
 	if err != nil {
@@ -149,7 +149,7 @@ func (b *BitArray) Not() (*BitArray, error) {
 	return bitArray, err
 }
 
-// And is the logical AND of two BitArrays
+// And is the logical AND of two BitArrays.
 func And(a, b *BitArray) (*BitArray, error) {
 	if a.length > b.length {
 		a, b = b, a
@@ -172,7 +172,7 @@ func And(a, b *BitArray) (*BitArray, error) {
 	return bitArray, nil
 }
 
-// Or is the logical OR of two BitArrays
+// Or is the logical OR of two BitArrays.
 func Or(a, b *BitArray) (*BitArray, error) {
 	if a.length > b.length {
 		a, b = b, a
@@ -195,7 +195,7 @@ func Or(a, b *BitArray) (*BitArray, error) {
 	return bitArray, nil
 }
 
-// Xor is the Exclusive OR of two BitArrays
+// Xor is the Exclusive OR of two BitArrays.
 func Xor(a, b *BitArray) (*BitArray, error) {
 	if a.length > b.length {
 		a, b = b, a
@@ -218,7 +218,7 @@ func Xor(a, b *BitArray) (*BitArray, error) {
 	return bitArray, nil
 }
 
-// AndNot clears bits specified by argument BitArray
+// AndNot clears bits specified by argument BitArray.
 func (b *BitArray) AndNot(bitArray *BitArray) (*BitArray, error) {
 	andNot, err := NewBitArray(b.length)
 	if err != nil {
@@ -244,6 +244,7 @@ func (b *BitArray) AndNot(bitArray *BitArray) (*BitArray, error) {
 	return andNot, nil
 }
 
+// LeftShift shifts the BitArray to the left.
 func (b *BitArray) LeftShift(n int) (*BitArray, error) {
 	if n < 0 {
 		return b.RightShift(-n)
@@ -276,6 +277,7 @@ func (b *BitArray) LeftShift(n int) (*BitArray, error) {
 	return bitArray, nil
 }
 
+// RightShift shifts the BitArray to the right.
 func (b *BitArray) RightShift(n int) (*BitArray, error) {
 	if n < 0 {
 		return b.LeftShift(-n)
