@@ -125,6 +125,7 @@ func (b *BitArray) Clone() (*BitArray, error) {
 	return clone, nil
 }
 
+// Not inverts all bits
 func (b *BitArray) Not() (*BitArray, error) {
 	bitArray, err := NewBitArray(b.length)
 	if err != nil {
@@ -141,6 +142,7 @@ func (b *BitArray) Not() (*BitArray, error) {
 	return bitArray, err
 }
 
+// And is the logical AND of two BitArrays
 func And(a, b *BitArray) (*BitArray, error) {
 	if a.length > b.length {
 		a, b = b, a
@@ -161,6 +163,7 @@ func And(a, b *BitArray) (*BitArray, error) {
 	return bitArray, nil
 }
 
+// Or is the logical Or of two BitArrays
 func Or(a, b *BitArray) (*BitArray, error) {
 	if a.length > b.length {
 		a, b = b, a
