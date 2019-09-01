@@ -124,3 +124,59 @@ func (b *BitArray) Clone() (*BitArray, error) {
 
 	return clone, nil
 }
+
+func (b *BitArray) Not() (*BitArray, error) {
+	bitArray, err := NewBitArray(b.length)
+	if err != nil {
+		return nil, err
+	}
+
+	for i, v := range b.blocks {
+		bitArray.blocks[i] = ^v
+	}
+
+	mask := byte(0xFF) >> byte(b.length%bits)
+	bitArray.blocks[len(b.blocks)-1] &= mask
+
+	return bitArray, err
+}
+
+func And(a, b *BitArray) (*BitArray, error) {
+	if a.length > b.length {
+		a, b = b, a
+	}
+
+	bitArray, err := NewBitArray(b.length)
+	if err != nil {
+		return nil, err
+	}
+
+	for i, v := range a.blocks {
+		bitArray.blocks[i] = v & b.blocks[i]
+	}
+
+	mask := byte(0xFF) >> byte(a.length%bits)
+	bitArray.blocks[len(a.blocks)-1] &= mask
+
+	return bitArray, nil
+}
+
+func Or(a, b *BitArray) (*BitArray, error) {
+	if a.length > b.length {
+		a, b = b, a
+	}
+
+	bitArray, err := NewBitArray(b.length)
+	if err != nil {
+		return nil, err
+	}
+
+	for i, v := range a.blocks {
+		bitArray.blocks[i] = v | b.blocks[i]
+	}
+
+	mask := byte(0xFF) >> byte(a.length%bits)
+	bitArray.blocks[len(a.blocks)-1] &= mask
+
+	return bitArray, nil
+}
