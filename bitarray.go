@@ -1,15 +1,18 @@
 package bitarray
 
-import "errors"
+import (
+	"errors"
+	"math"
+)
 
 // BitArray is bool array with low memory usage.
 type BitArray struct {
-	blocks []byte
+	blocks []uint64
 	length int
 }
 
-// bit per block
-const bits = 8
+const bitPerBlock = 64
+const max = math.MaxUint64
 
 // NewBitArray is BitArray constructed.
 func NewBitArray(length int) (*BitArray, error) {
@@ -17,13 +20,13 @@ func NewBitArray(length int) (*BitArray, error) {
 		return nil, errors.New("negative length argument")
 	}
 
-	blockSize := length / bits
-	if length%bits != 0 {
+	blockSize := length / bitPerBlock
+	if length%bitPerBlock != 0 {
 		blockSize++
 	}
 
 	return &BitArray{
-		blocks: make([]byte, blockSize),
+		blocks: make([]uint64, blockSize),
 		length: length,
 	}, nil
 }
@@ -34,10 +37,10 @@ func (b *BitArray) Set(index int) error {
 		return errors.New("index out of range")
 	}
 
-	i := index / bits
+	i := index / bitPerBlock
 	u := b.blocks[i]
-	shift := byte(index % bits)
-	mask := byte(1 << shift)
+	shift := uint64(index % bitPerBlock)
+	mask := uint64(1 << shift)
 	flag := u | mask
 	b.blocks[i] = flag
 	return nil
@@ -49,10 +52,10 @@ func (b *BitArray) Get(index int) (bool, error) {
 		return false, errors.New("index out of range")
 	}
 
-	i := index / bits
+	i := index / bitPerBlock
 	u := b.blocks[i]
-	shift := byte(index % bits)
-	mask := byte(1 << shift)
+	shift := uint64(index % bitPerBlock)
+	mask := uint64(1 << shift)
 	flag := u & mask
 	return flag != 0, nil
 }
@@ -63,21 +66,21 @@ func (b *BitArray) Clear(index int) error {
 		return errors.New("index out of range")
 	}
 
-	i := index / bits
+	i := index / bitPerBlock
 	u := b.blocks[i]
-	shift := byte(index % bits)
-	mask := byte(1 << shift)
+	shift := uint64(index % bitPerBlock)
+	mask := uint64(1 << shift)
 	flag := u & ^mask
 	b.blocks[i] = flag
 	return nil
 }
 
-// Reset set all bits to false.
+// Reset set all bitPerBlock to false.
 func (b *BitArray) Reset() {
-	b.blocks = make([]byte, b.length/bits+1)
+	b.blocks = make([]uint64, b.length/bitPerBlock+1)
 }
 
-// Length returns number of bits in the BitArray.
+// Length returns number of bitPerBlock in the BitArray.
 func (b *BitArray) Length() int {
 	return b.length
 }
@@ -130,7 +133,7 @@ func (b *BitArray) Clone() (*BitArray, error) {
 	return clone, nil
 }
 
-// Not inverts all bits.
+// Not inverts all bitPerBlock.
 func (b *BitArray) Not() (*BitArray, error) {
 	bitArray, err := NewBitArray(b.length)
 	if err != nil {
@@ -141,8 +144,8 @@ func (b *BitArray) Not() (*BitArray, error) {
 		bitArray.blocks[i] = ^v
 	}
 
-	if len(b.blocks) > 0 && b.length%bits != 0 {
-		mask := byte(0xFF) >> byte(8-b.length%bits)
+	if len(b.blocks) > 0 && b.length%bitPerBlock != 0 {
+		mask := uint64(max) >> uint64(bitPerBlock-b.length%bitPerBlock)
 		bitArray.blocks[len(b.blocks)-1] &= mask
 	}
 
@@ -164,8 +167,8 @@ func And(a, b *BitArray) (*BitArray, error) {
 		bitArray.blocks[i] = v & b.blocks[i]
 	}
 
-	if len(a.blocks) > 0 && a.length%bits != 0 {
-		mask := byte(0xFF) >> byte(8-a.length%bits)
+	if len(a.blocks) > 0 && a.length%bitPerBlock != 0 {
+		mask := uint64(max) >> uint64(bitPerBlock-a.length%bitPerBlock)
 		bitArray.blocks[len(a.blocks)-1] &= mask
 	}
 
@@ -187,8 +190,8 @@ func Or(a, b *BitArray) (*BitArray, error) {
 		bitArray.blocks[i] = v | b.blocks[i]
 	}
 
-	if len(a.blocks) > 0 && a.length%bits != 0 {
-		mask := byte(0xFF) >> byte(8-a.length%bits)
+	if len(a.blocks) > 0 && a.length%bitPerBlock != 0 {
+		mask := uint64(max) >> uint64(bitPerBlock-a.length%bitPerBlock)
 		bitArray.blocks[len(a.blocks)-1] &= mask
 	}
 
@@ -210,15 +213,15 @@ func Xor(a, b *BitArray) (*BitArray, error) {
 		bitArray.blocks[i] = v ^ b.blocks[i]
 	}
 
-	if len(a.blocks) > 0 && a.length%bits != 0 {
-		mask := byte(0xFF) >> byte(8-a.length%bits)
+	if len(a.blocks) > 0 && a.length%bitPerBlock != 0 {
+		mask := uint64(max) >> uint64(bitPerBlock-a.length%bitPerBlock)
 		bitArray.blocks[len(a.blocks)-1] &= mask
 	}
 
 	return bitArray, nil
 }
 
-// AndNot clears bits specified by argument BitArray.
+// AndNot clears bitPerBlock specified by argument BitArray.
 func (b *BitArray) AndNot(bitArray *BitArray) (*BitArray, error) {
 	andNot, err := NewBitArray(b.length)
 	if err != nil {
@@ -236,8 +239,8 @@ func (b *BitArray) AndNot(bitArray *BitArray) (*BitArray, error) {
 		andNot.blocks[i] = bitArray.blocks[i] &^ v
 	}
 
-	if len(andNot.blocks) > 0 && andNot.length%bits != 0 {
-		mask := byte(0xFF) >> byte(8-b.length%bits)
+	if len(andNot.blocks) > 0 && andNot.length%bitPerBlock != 0 {
+		mask := uint64(max) >> uint64(bitPerBlock-b.length%bitPerBlock)
 		andNot.blocks[len(andNot.blocks)-1] &= mask
 	}
 
@@ -261,16 +264,16 @@ func (b *BitArray) LeftShift(n int) (*BitArray, error) {
 		return nil, err
 	}
 
-	div := n / bits
-	mod := byte(n % bits)
+	div := n / bitPerBlock
+	mod := uint64(n % bitPerBlock)
 	for i := 1; i < len(b.blocks); i++ {
-		bitArray.blocks[i+div] = (b.blocks[i] << mod) | (b.blocks[i-1] >> (8 - mod))
+		bitArray.blocks[i+div] = (b.blocks[i] << mod) | (b.blocks[i-1] >> (bitPerBlock - mod))
 	}
 
 	if len(b.blocks) > 0 {
 		bitArray.blocks[div] = b.blocks[0] << mod
 		if len(b.blocks)+div < len(bitArray.blocks) {
-			bitArray.blocks[len(bitArray.blocks)-1] = b.blocks[len(b.blocks)-1] >> (8 - mod)
+			bitArray.blocks[len(bitArray.blocks)-1] = b.blocks[len(b.blocks)-1] >> (bitPerBlock - mod)
 		}
 	}
 
@@ -292,10 +295,10 @@ func (b *BitArray) RightShift(n int) (*BitArray, error) {
 		return nil, err
 	}
 
-	div := n / bits
-	mod := byte(n % bits)
+	div := n / bitPerBlock
+	mod := uint64(n % bitPerBlock)
 	for i := div; i < len(b.blocks)-1; i++ {
-		bitArray.blocks[i-div] = (b.blocks[i] >> mod) | (b.blocks[i+1] << (8 - mod))
+		bitArray.blocks[i-div] = (b.blocks[i] >> mod) | (b.blocks[i+1] << (bitPerBlock - mod))
 	}
 
 	if len(b.blocks)-div > 0 {
