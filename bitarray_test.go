@@ -424,6 +424,28 @@ func TestBitArray_Reverse(t *testing.T) {
 	}
 }
 
+func TestBitArray_OnesCount(t *testing.T) {
+	for length := 0; length < 1000; length++ {
+		bitArray, err := NewBitArray(length)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		count := 0
+		for i := 0; i < bitArray.length; i += 7 {
+			if err := bitArray.Set(i); err != nil {
+				t.Error(err)
+			}
+			count++
+		}
+
+		c := bitArray.OnesCount()
+		if c != count {
+			t.Errorf("value does not match %v %v %v", length, c, count)
+		}
+	}
+}
+
 func TestBitArray_Slice(t *testing.T) {
 	for length := 0; length < 10000; length++ {
 		bitArray, err := NewBitArray(length)

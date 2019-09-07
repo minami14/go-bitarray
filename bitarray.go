@@ -335,3 +335,13 @@ func (b *BitArray) Reverse() (*BitArray, error) {
 
 	return reversed, nil
 }
+
+// OnesCount returns the number of true bits in BitArray
+func (b *BitArray) OnesCount() int {
+	count := 0
+	for i := 0; i < len(b.blocks); i++ {
+		count += bits.OnesCount64(b.blocks[i])
+	}
+
+	return count
+}
