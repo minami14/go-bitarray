@@ -401,7 +401,7 @@ func TestBitArray_Reverse(t *testing.T) {
 			}
 		}
 
-		reversed, err := bitArray.Reverse()
+		reversed, err := bitArray.ReverseBytes()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -419,6 +419,48 @@ func TestBitArray_Reverse(t *testing.T) {
 
 			if b != right {
 				t.Errorf("value does not match %v %v %v %v", length, i, b, right)
+			}
+		}
+	}
+}
+
+func TestBitArray_OnesCount(t *testing.T) {
+	for length := 0; length < 1000; length++ {
+		bitArray, err := NewBitArray(length)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		count := 0
+		for i := 0; i < bitArray.length; i += 7 {
+			if err := bitArray.Set(i); err != nil {
+				t.Error(err)
+			}
+			count++
+		}
+
+		c := bitArray.OnesCount()
+		if c != count {
+			t.Errorf("value does not match %v %v %v", length, c, count)
+		}
+	}
+}
+
+func TestBitArray_TrailingZeros(t *testing.T) {
+	for length := 0; length < 1000; length++ {
+		for i := 0; i < length; i++ {
+			bitArray, err := NewBitArray(length)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if err := bitArray.Set(i); err != nil {
+				t.Error(err)
+			}
+
+			zeros := bitArray.TrailingZeros()
+			if zeros != i {
+				t.Errorf("value does not match %v %v %v", length, zeros, i)
 			}
 		}
 	}

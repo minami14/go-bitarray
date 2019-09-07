@@ -311,8 +311,8 @@ func (b *BitArray) RightShift(n int) (*BitArray, error) {
 	return bitArray, nil
 }
 
-// Reverse reverses bit order
-func (b *BitArray) Reverse() (*BitArray, error) {
+// ReverseBytes returns the value of the BitArray with its bytes in reversed order.
+func (b *BitArray) ReverseBytes() (*BitArray, error) {
 	reversed, err := NewBitArray(b.length)
 	if err != nil {
 		return nil, err
@@ -334,4 +334,34 @@ func (b *BitArray) Reverse() (*BitArray, error) {
 	}
 
 	return reversed, nil
+}
+
+// OnesCount returns the number of one bits in the BitArray.
+func (b *BitArray) OnesCount() int {
+	count := 0
+	for i := 0; i < len(b.blocks); i++ {
+		count += bits.OnesCount64(b.blocks[i])
+	}
+
+	return count
+}
+
+// TrailingZeros returns the number of trailing zero bits in the BitArray.
+func (b *BitArray) TrailingZeros() int {
+	count := 0
+	lastIndex := len(b.blocks) - 1
+	for i := 0; i < lastIndex; i++ {
+		zeros := bits.TrailingZeros64(b.blocks[i])
+		if zeros != bitPerBlock {
+			return count + zeros
+		}
+
+		count += bitPerBlock
+	}
+
+	if len(b.blocks) > 0 {
+		count += bits.TrailingZeros64(b.blocks[lastIndex])
+	}
+
+	return count
 }
