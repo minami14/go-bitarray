@@ -388,6 +388,42 @@ func TestBitArray_RightShift(t *testing.T) {
 	}
 }
 
+func TestBitArray_Reverse(t *testing.T) {
+	for length := 0; length < 1000; length++ {
+		bitArray, err := NewBitArray(length)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		for i := 0; i < bitArray.length; i += 7 {
+			if err := bitArray.Set(i); err != nil {
+				t.Error(err)
+			}
+		}
+
+		reversed, err := bitArray.Reverse()
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		for i := 0; i < bitArray.length; i++ {
+			b, err := bitArray.Get(i)
+			if err != nil {
+				t.Error(err)
+			}
+
+			right, err := reversed.Get(bitArray.length - i - 1)
+			if err != nil {
+				t.Error(err)
+			}
+
+			if b != right {
+				t.Errorf("value does not match %v %v %v %v", length, i, b, right)
+			}
+		}
+	}
+}
+
 func TestBitArray_Slice(t *testing.T) {
 	for length := 0; length < 10000; length++ {
 		bitArray, err := NewBitArray(length)
