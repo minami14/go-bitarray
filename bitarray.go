@@ -3,6 +3,7 @@ package bitarray
 import (
 	"errors"
 	"math"
+	"math/bits"
 )
 
 // BitArray is bool array with low memory usage.
@@ -266,14 +267,15 @@ func (b *BitArray) LeftShift(n int) (*BitArray, error) {
 
 	div := n / bitPerBlock
 	mod := uint64(n % bitPerBlock)
+	shift := bitPerBlock - mod
 	for i := 1; i < len(b.blocks); i++ {
-		bitArray.blocks[i+div] = (b.blocks[i] << mod) | (b.blocks[i-1] >> (bitPerBlock - mod))
+		bitArray.blocks[i+div] = (b.blocks[i] << mod) | (b.blocks[i-1] >> shift)
 	}
 
 	if len(b.blocks) > 0 {
 		bitArray.blocks[div] = b.blocks[0] << mod
 		if len(b.blocks)+div < len(bitArray.blocks) {
-			bitArray.blocks[len(bitArray.blocks)-1] = b.blocks[len(b.blocks)-1] >> (bitPerBlock - mod)
+			bitArray.blocks[len(bitArray.blocks)-1] = b.blocks[len(b.blocks)-1] >> shift
 		}
 	}
 
@@ -297,8 +299,9 @@ func (b *BitArray) RightShift(n int) (*BitArray, error) {
 
 	div := n / bitPerBlock
 	mod := uint64(n % bitPerBlock)
+	shift := bitPerBlock - mod
 	for i := div; i < len(b.blocks)-1; i++ {
-		bitArray.blocks[i-div] = (b.blocks[i] >> mod) | (b.blocks[i+1] << (bitPerBlock - mod))
+		bitArray.blocks[i-div] = (b.blocks[i] >> mod) | (b.blocks[i+1] << shift)
 	}
 
 	if len(b.blocks)-div > 0 {
@@ -306,4 +309,29 @@ func (b *BitArray) RightShift(n int) (*BitArray, error) {
 	}
 
 	return bitArray, nil
+}
+
+// Reverse reverses bit order
+func (b *BitArray) Reverse() (*BitArray, error) {
+	reversed, err := NewBitArray(b.length)
+	if err != nil {
+		return nil, err
+	}
+
+	lastIndex := len(b.blocks) - 1
+	mod := uint64(b.length % bitPerBlock)
+	if mod == 0 {
+		mod = bitPerBlock
+	}
+	shift := bitPerBlock - mod
+
+	for i := 0; i < lastIndex; i++ {
+		reversed.blocks[i] = (bits.Reverse64(b.blocks[lastIndex-i]) >> shift) | bits.Reverse64(b.blocks[lastIndex-i-1]>>mod)
+	}
+
+	if len(b.blocks) > 0 {
+		reversed.blocks[lastIndex] = bits.Reverse64(b.blocks[0]) >> (bitPerBlock - mod)
+	}
+
+	return reversed, nil
 }
