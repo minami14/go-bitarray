@@ -466,6 +466,111 @@ func TestBitArray_TrailingZeros(t *testing.T) {
 	}
 }
 
+func TestAdd(t *testing.T) {
+	for length := 0; length < 1000; length++ {
+		a, err := NewBitArray(length)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		b, err := NewBitArray(length)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		c, err := NewBitArray(length)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		for i := 0; i < length; i += 7 {
+			if err := a.Set(i); err != nil {
+				t.Error(err)
+			}
+
+			if err := c.Set(i); err != nil {
+				t.Error(err)
+			}
+		}
+
+		carry := false
+		for i := 0; i < length; i += 11 {
+			if err := b.Set(i); err != nil {
+				t.Error(err)
+			}
+
+			v, err := c.Get(i)
+			if err != nil {
+				t.Error(err)
+			}
+
+			if v == carry {
+				if err := c.Set(i); err != nil {
+					t.Error(err)
+				}
+			} else {
+				if err := c.Clear(i); err != nil {
+					t.Error(err)
+				}
+			}
+
+			if v || carry {
+				carry = true
+			} else {
+				carry = false
+			}
+
+			for j := i + 1; j < length; j++ {
+				if !carry {
+					break
+				}
+
+				v, err := c.Get(i)
+				if err != nil {
+					t.Error(err)
+				}
+
+				if carry == v {
+					carry = true
+					if err := c.Clear(j); err != nil {
+						t.Error(err)
+					}
+				} else {
+					carry = false
+					if err := c.Set(j); err != nil {
+						t.Error(err)
+					}
+				}
+			}
+		}
+
+		sum, carryOut, err := Add(a, b, false)
+		if err != nil {
+			t.Error(err)
+		}
+
+		if carry != carryOut {
+			t.Errorf("value does not match %v %v %v", length, carry, carryOut)
+		}
+
+		for i := 0; i < length; i++ {
+			x, err := c.Get(i)
+			if err != nil {
+				t.Error(err)
+			}
+
+			y, err := sum.Get(i)
+			if err != nil {
+				t.Error(err)
+			}
+
+			if x != y {
+				t.Errorf("value does not match %v %v %v %v", length, i, x, y)
+			}
+		}
+	}
+}
+
 func TestBitArray_Slice(t *testing.T) {
 	for length := 0; length < 10000; length++ {
 		bitArray, err := NewBitArray(length)
