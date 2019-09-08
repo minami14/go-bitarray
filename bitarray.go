@@ -365,3 +365,40 @@ func (b *BitArray) TrailingZeros() int {
 
 	return count
 }
+
+// Add returns the sum with carry of two BitArrays and carry.
+func Add(a, b *BitArray, carry bool) (*BitArray, bool, error) {
+	if a.length < b.length {
+		a, b = b, a
+	}
+
+	bitArray, err := NewBitArray(a.length)
+	if err != nil {
+		return nil, false, err
+	}
+
+	c := uint64(0)
+	if carry {
+		c = 1
+	}
+
+	for i := 0; i < len(b.blocks); i++ {
+		bitArray.blocks[i], c = bits.Add64(a.blocks[i], b.blocks[i], c)
+	}
+
+	for i := len(b.blocks); i < len(a.blocks); i++ {
+		bitArray.blocks[i], c = bits.Add64(a.blocks[i], 0, c)
+	}
+
+	mod := bitArray.length % bitPerBlock
+	mask := ^uint64(0) >> uint64(bitPerBlock-mod)
+	if mod != 0 {
+		u := bitArray.blocks[len(a.blocks)-1]
+		if u & ^mask != 0 {
+			c = 1
+			bitArray.blocks[len(a.blocks)-1] = u & mask
+		}
+	}
+
+	return bitArray, c == 1, nil
+}
