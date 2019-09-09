@@ -406,9 +406,9 @@ func Add(x, y *BitArray, carry bool) (*BitArray, bool, error) {
 // Sub returns the difference of two BitArrays and borrow.
 func Sub(x, y *BitArray, borrow bool) (*BitArray, bool, error) {
 	xLen, yLen := len(x.blocks), len(y.blocks)
-	big, small := xLen, yLen
-	if big < small {
-		big, small = small, big
+	small := xLen
+	if xLen < yLen {
+		small = yLen
 	}
 
 	bitArray, err := NewBitArray(x.length)
