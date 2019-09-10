@@ -154,69 +154,69 @@ func (b *BitArray) Not() (*BitArray, error) {
 }
 
 // And is the logical AND of two BitArrays.
-func And(a, b *BitArray) (*BitArray, error) {
-	if a.length > b.length {
-		a, b = b, a
+func And(x, y *BitArray) (*BitArray, error) {
+	if x.length > y.length {
+		x, y = y, x
 	}
 
-	bitArray, err := NewBitArray(b.length)
+	bitArray, err := NewBitArray(y.length)
 	if err != nil {
 		return nil, err
 	}
 
-	for i, v := range a.blocks {
-		bitArray.blocks[i] = v & b.blocks[i]
+	for i, v := range x.blocks {
+		bitArray.blocks[i] = v & y.blocks[i]
 	}
 
-	if len(a.blocks) > 0 && a.length%bitPerBlock != 0 {
-		mask := uint64(max) >> uint64(bitPerBlock-a.length%bitPerBlock)
-		bitArray.blocks[len(a.blocks)-1] &= mask
+	if len(x.blocks) > 0 && x.length%bitPerBlock != 0 {
+		mask := uint64(max) >> uint64(bitPerBlock-x.length%bitPerBlock)
+		bitArray.blocks[len(x.blocks)-1] &= mask
 	}
 
 	return bitArray, nil
 }
 
 // Or is the logical OR of two BitArrays.
-func Or(a, b *BitArray) (*BitArray, error) {
-	if a.length > b.length {
-		a, b = b, a
+func Or(x, y *BitArray) (*BitArray, error) {
+	if x.length > y.length {
+		x, y = y, x
 	}
 
-	bitArray, err := NewBitArray(b.length)
+	bitArray, err := NewBitArray(y.length)
 	if err != nil {
 		return nil, err
 	}
 
-	for i, v := range a.blocks {
-		bitArray.blocks[i] = v | b.blocks[i]
+	for i, v := range x.blocks {
+		bitArray.blocks[i] = v | y.blocks[i]
 	}
 
-	if len(a.blocks) > 0 && a.length%bitPerBlock != 0 {
-		mask := uint64(max) >> uint64(bitPerBlock-a.length%bitPerBlock)
-		bitArray.blocks[len(a.blocks)-1] &= mask
+	if len(x.blocks) > 0 && x.length%bitPerBlock != 0 {
+		mask := uint64(max) >> uint64(bitPerBlock-x.length%bitPerBlock)
+		bitArray.blocks[len(x.blocks)-1] &= mask
 	}
 
 	return bitArray, nil
 }
 
 // Xor is the Exclusive OR of two BitArrays.
-func Xor(a, b *BitArray) (*BitArray, error) {
-	if a.length > b.length {
-		a, b = b, a
+func Xor(x, y *BitArray) (*BitArray, error) {
+	if x.length > y.length {
+		x, y = y, x
 	}
 
-	bitArray, err := NewBitArray(b.length)
+	bitArray, err := NewBitArray(y.length)
 	if err != nil {
 		return nil, err
 	}
 
-	for i, v := range a.blocks {
-		bitArray.blocks[i] = v ^ b.blocks[i]
+	for i, v := range x.blocks {
+		bitArray.blocks[i] = v ^ y.blocks[i]
 	}
 
-	if len(a.blocks) > 0 && a.length%bitPerBlock != 0 {
-		mask := uint64(max) >> uint64(bitPerBlock-a.length%bitPerBlock)
-		bitArray.blocks[len(a.blocks)-1] &= mask
+	if len(x.blocks) > 0 && x.length%bitPerBlock != 0 {
+		mask := uint64(max) >> uint64(bitPerBlock-x.length%bitPerBlock)
+		bitArray.blocks[len(x.blocks)-1] &= mask
 	}
 
 	return bitArray, nil
@@ -367,12 +367,12 @@ func (b *BitArray) TrailingZeros() int {
 }
 
 // Add returns the sum with carry of two BitArrays and carry.
-func Add(a, b *BitArray, carry bool) (*BitArray, bool, error) {
-	if a.length < b.length {
-		a, b = b, a
+func Add(x, y *BitArray, carry bool) (*BitArray, bool, error) {
+	if x.length < y.length {
+		x, y = y, x
 	}
 
-	bitArray, err := NewBitArray(a.length)
+	bitArray, err := NewBitArray(x.length)
 	if err != nil {
 		return nil, false, err
 	}
@@ -382,23 +382,68 @@ func Add(a, b *BitArray, carry bool) (*BitArray, bool, error) {
 		c = 1
 	}
 
-	for i := 0; i < len(b.blocks); i++ {
-		bitArray.blocks[i], c = bits.Add64(a.blocks[i], b.blocks[i], c)
+	for i := 0; i < len(y.blocks); i++ {
+		bitArray.blocks[i], c = bits.Add64(x.blocks[i], y.blocks[i], c)
 	}
 
-	for i := len(b.blocks); i < len(a.blocks); i++ {
-		bitArray.blocks[i], c = bits.Add64(a.blocks[i], 0, c)
+	for i := len(y.blocks); i < len(x.blocks); i++ {
+		bitArray.blocks[i], c = bits.Add64(x.blocks[i], 0, c)
 	}
 
 	mod := bitArray.length % bitPerBlock
-	mask := ^uint64(0) >> uint64(bitPerBlock-mod)
 	if mod != 0 {
-		u := bitArray.blocks[len(a.blocks)-1]
+		mask := ^uint64(0) >> uint64(bitPerBlock-mod)
+		u := bitArray.blocks[len(x.blocks)-1]
 		if u & ^mask != 0 {
 			c = 1
-			bitArray.blocks[len(a.blocks)-1] = u & mask
+			bitArray.blocks[len(x.blocks)-1] = u & mask
 		}
 	}
 
 	return bitArray, c == 1, nil
+}
+
+// Sub returns the difference of two BitArrays and borrow.
+func Sub(x, y *BitArray, borrow bool) (*BitArray, bool, error) {
+	xLen, yLen := len(x.blocks), len(y.blocks)
+	small := xLen
+	if xLen < yLen {
+		small = yLen
+	}
+
+	bitArray, err := NewBitArray(x.length)
+	if err != nil {
+		return nil, false, err
+	}
+
+	b := uint64(0)
+	if borrow {
+		b = 1
+	}
+
+	for i := 0; i < small; i++ {
+		bitArray.blocks[i], b = bits.Sub64(x.blocks[i], y.blocks[i], b)
+	}
+
+	if xLen > yLen {
+		for i := len(y.blocks); i < len(x.blocks); i++ {
+			bitArray.blocks[i], b = bits.Sub64(x.blocks[i], 0, b)
+		}
+	} else {
+		for i := len(y.blocks); i < len(x.blocks); i++ {
+			bitArray.blocks[i], b = bits.Sub64(0, y.blocks[i], b)
+		}
+	}
+
+	mod := bitArray.length % bitPerBlock
+	if mod != 0 {
+		mask := ^uint64(0) >> uint64(bitPerBlock-mod)
+		u := bitArray.blocks[len(x.blocks)-1]
+		if u & ^mask != 0 {
+			b = 1
+			bitArray.blocks[len(x.blocks)-1] = u & mask
+		}
+	}
+
+	return bitArray, b == 1, nil
 }
