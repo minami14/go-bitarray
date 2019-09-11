@@ -1,7 +1,6 @@
 package bitarray
 
 import (
-	"errors"
 	"testing"
 )
 
@@ -571,6 +570,71 @@ func TestAdd(t *testing.T) {
 	}
 }
 
+func TestBitArray_Append(t *testing.T) {
+	for length := 0; length < 1000; length++ {
+		x, err := NewBitArray(length)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		interval := 7
+		for i := 0; i < length; i += interval {
+			if err := x.Set(i); err != nil {
+				t.Error(err)
+			}
+		}
+
+		for i := 0; i < 1000; i++ {
+			y, err := NewBitArray(i)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			z, err := NewBitArray(length + i)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			for j := 0; j < length; j += interval {
+				if err := z.Set(j); err != nil {
+					t.Error(err)
+				}
+			}
+
+			for j := 0; j < i; j += 11 {
+				if err := y.Set(j); err != nil {
+					t.Error(err)
+				}
+
+				if err := z.Set(j + length); err != nil {
+					t.Error(err)
+				}
+			}
+
+			appended, err := x.Append(y)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			for j := 0; j < appended.length; j++ {
+				a, err := appended.Get(j)
+				if err != nil {
+					t.Error(err)
+				}
+
+				b, err := z.Get(j)
+				if err != nil {
+					t.Error(err)
+				}
+
+				if a != b {
+					t.Errorf("value does not match %v %v %v %v %v", length, i, j, a, b)
+				}
+			}
+		}
+	}
+}
+
 func TestBitArray_Slice(t *testing.T) {
 	for length := 0; length < 10000; length++ {
 		bitArray, err := NewBitArray(length)
@@ -702,304 +766,4 @@ func BenchmarkBoolSlice_Set(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		boolSlice[i] = true
 	}
-}
-
-func BenchmarkBitArray8_Get(b *testing.B) {
-	b.ReportAllocs()
-	b.ResetTimer()
-
-	bitArray, err := NewBitArray8(b.N)
-	if err != nil {
-		b.Fatal(err)
-	}
-
-	for i := 0; i < b.N; i++ {
-		if _, err = bitArray.Get(i); err != nil {
-			b.Log(err)
-		}
-	}
-}
-
-func BenchmarkBitArray8_Set(b *testing.B) {
-	b.ReportAllocs()
-	b.ResetTimer()
-
-	bitArray, err := NewBitArray8(b.N)
-	if err != nil {
-		b.Fatal(err)
-	}
-
-	for i := 0; i < b.N; i++ {
-		if err := bitArray.Set(i); err != nil {
-			b.Log(err)
-		}
-	}
-}
-
-func BenchmarkBitArray16_Get(b *testing.B) {
-	b.ReportAllocs()
-	b.ResetTimer()
-
-	bitArray, err := NewBitArray16(b.N)
-	if err != nil {
-		b.Fatal(err)
-	}
-
-	for i := 0; i < b.N; i++ {
-		if _, err = bitArray.Get(i); err != nil {
-			b.Log(err)
-		}
-	}
-}
-
-func BenchmarkBitArray16_Set(b *testing.B) {
-	b.ReportAllocs()
-	b.ResetTimer()
-
-	bitArray, err := NewBitArray16(b.N)
-	if err != nil {
-		b.Fatal(err)
-	}
-
-	for i := 0; i < b.N; i++ {
-		if err := bitArray.Set(i); err != nil {
-			b.Log(err)
-		}
-	}
-}
-
-func BenchmarkBitArray32_Get(b *testing.B) {
-	b.ReportAllocs()
-	b.ResetTimer()
-
-	bitArray, err := NewBitArray32(b.N)
-	if err != nil {
-		b.Fatal(err)
-	}
-
-	for i := 0; i < b.N; i++ {
-		if _, err = bitArray.Get(i); err != nil {
-			b.Log(err)
-		}
-	}
-}
-
-func BenchmarkBitArray32_Set(b *testing.B) {
-	b.ReportAllocs()
-	b.ResetTimer()
-
-	bitArray, err := NewBitArray32(b.N)
-	if err != nil {
-		b.Fatal(err)
-	}
-
-	for i := 0; i < b.N; i++ {
-		if err := bitArray.Set(i); err != nil {
-			b.Log(err)
-		}
-	}
-}
-
-func BenchmarkBitArray64_Get(b *testing.B) {
-	b.ReportAllocs()
-	b.ResetTimer()
-
-	bitArray, err := NewBitArray64(b.N)
-	if err != nil {
-		b.Fatal(err)
-	}
-
-	for i := 0; i < b.N; i++ {
-		if _, err = bitArray.Get(i); err != nil {
-			b.Log(err)
-		}
-	}
-}
-
-func BenchmarkBitArray64_Set(b *testing.B) {
-	b.ReportAllocs()
-	b.ResetTimer()
-
-	bitArray, err := NewBitArray64(b.N)
-	if err != nil {
-		b.Fatal(err)
-	}
-
-	for i := 0; i < b.N; i++ {
-		if err := bitArray.Set(i); err != nil {
-			b.Log(err)
-		}
-	}
-}
-
-type BitArray8 struct {
-	blocks []byte
-	length int
-}
-
-func NewBitArray8(size int) (*BitArray8, error) {
-	if size <= 0 {
-		return nil, errors.New("size is 0 or less")
-	}
-
-	return &BitArray8{
-		blocks: make([]byte, size/8+1),
-		length: size,
-	}, nil
-}
-
-func (b *BitArray8) Set(index int) error {
-	if index < 0 || index >= b.length {
-		return errors.New("index out of range")
-	}
-
-	i := index / 8
-	u := b.blocks[i]
-	shift := byte(index % 8)
-	mask := byte(1 << shift)
-	flag := u | mask
-	b.blocks[i] = flag
-	return nil
-}
-
-func (b *BitArray8) Get(index int) (bool, error) {
-	if index < 0 || index >= b.length {
-		return false, errors.New("index out of range")
-	}
-
-	i := index / 8
-	u := b.blocks[i]
-	shift := byte(index % 8)
-	mask := byte(1 << shift)
-	flag := u & mask
-	return flag != 0, nil
-}
-
-type BitArray16 struct {
-	blocks []uint16
-	length int
-}
-
-func NewBitArray16(size int) (*BitArray16, error) {
-	if size <= 0 {
-		return nil, errors.New("size is 0 or less")
-	}
-
-	return &BitArray16{
-		blocks: make([]uint16, size/16+1),
-		length: size,
-	}, nil
-}
-
-func (b *BitArray16) Set(index int) error {
-	if index < 0 || index >= b.length {
-		return errors.New("index out of range")
-	}
-
-	i := index / 16
-	u := b.blocks[i]
-	shift := uint16(index % 16)
-	mask := uint16(1 << shift)
-	flag := u | mask
-	b.blocks[i] = flag
-	return nil
-}
-
-func (b *BitArray16) Get(index int) (bool, error) {
-	if index < 0 || index >= b.length {
-		return false, errors.New("index out of range")
-	}
-
-	i := index / 16
-	u := b.blocks[i]
-	shift := uint16(index % 16)
-	mask := uint16(1 << shift)
-	flag := u & mask
-	return flag != 0, nil
-}
-
-type BitArray32 struct {
-	blocks []uint32
-	length int
-}
-
-func NewBitArray32(size int) (*BitArray32, error) {
-	if size <= 0 {
-		return nil, errors.New("size is 0 or less")
-	}
-
-	return &BitArray32{
-		blocks: make([]uint32, size/32+1),
-		length: size,
-	}, nil
-}
-
-func (b *BitArray32) Set(index int) error {
-	if index < 0 || index >= b.length {
-		return errors.New("index out of range")
-	}
-
-	i := index / 32
-	u := b.blocks[i]
-	shift := uint32(index % 32)
-	mask := uint32(1 << shift)
-	flag := u | mask
-	b.blocks[i] = flag
-	return nil
-}
-
-func (b *BitArray32) Get(index int) (bool, error) {
-	if index < 0 || index >= b.length {
-		return false, errors.New("index out of range")
-	}
-
-	i := index / 32
-	u := b.blocks[i]
-	shift := uint32(index % 32)
-	mask := uint32(1 << shift)
-	flag := u & mask
-	return flag != 0, nil
-}
-
-type BitArray64 struct {
-	blocks []uint64
-	length int
-}
-
-func NewBitArray64(size int) (*BitArray64, error) {
-	if size <= 0 {
-		return nil, errors.New("size is 0 or less")
-	}
-
-	return &BitArray64{
-		blocks: make([]uint64, size/64+1),
-		length: size,
-	}, nil
-}
-
-func (b *BitArray64) Set(index int) error {
-	if index < 0 || index >= b.length {
-		return errors.New("index out of range")
-	}
-
-	i := index / 64
-	u := b.blocks[i]
-	shift := uint64(index % 64)
-	mask := uint64(1 << shift)
-	flag := u | mask
-	b.blocks[i] = flag
-	return nil
-}
-
-func (b *BitArray64) Get(index int) (bool, error) {
-	if index < 0 || index >= b.length {
-		return false, errors.New("index out of range")
-	}
-
-	i := index / 64
-	u := b.blocks[i]
-	shift := uint64(index % 64)
-	mask := uint64(1 << shift)
-	flag := u & mask
-	return flag != 0, nil
 }

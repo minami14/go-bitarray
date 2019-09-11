@@ -86,6 +86,47 @@ func (b *BitArray) Length() int {
 	return b.length
 }
 
+// Append appends elements to the end of a slice
+func (b *BitArray) Append(elem *BitArray) (*BitArray, error) {
+	if len(b.blocks) == 0 {
+		return elem.Clone()
+	}
+
+	if len(elem.blocks) == 0 {
+		return b.Clone()
+	}
+
+	size := b.length + elem.length
+	bitArray, err := NewBitArray(size)
+	if err != nil {
+		return nil, err
+	}
+
+	for i := 0; i < len(b.blocks); i++ {
+		bitArray.blocks[i] = b.blocks[i]
+	}
+
+	mod := uint(b.length % bitPerBlock)
+	if mod == 0 {
+		for i := 0; i < len(elem.blocks); i++ {
+			bitArray.blocks[i+len(b.blocks)] = elem.blocks[i]
+		}
+
+		return bitArray, nil
+	}
+
+	bitArray.blocks[len(b.blocks)-1] |= elem.blocks[0] << mod
+	lastIndex := len(elem.blocks) - 1
+	shift := bitPerBlock - mod
+	for i := 0; i < lastIndex; i++ {
+		bitArray.blocks[i+len(b.blocks)] = elem.blocks[i]>>shift | elem.blocks[i+1]<<mod
+	}
+
+	bitArray.blocks[len(bitArray.blocks)-1] |= elem.blocks[lastIndex] >> shift
+
+	return bitArray, nil
+}
+
 // Slice the BitArray.
 func (b *BitArray) Slice(start, end int) (*BitArray, error) {
 	size := end - start
